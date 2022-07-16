@@ -7,6 +7,7 @@ const Managed = std.math.big.int.Managed;
 const Mutable = std.math.big.int.Mutable;
 const calcMulLimbsBufferLen = std.math.big.int.calcMulLimbsBufferLen;
 const calcDivLimbsBufferLen = std.math.big.int.calcDivLimbsBufferLen;
+const math = std.math;
 const maxInt = std.math.maxInt;
 
 pub fn mul(rma: *Managed, a: Const, b: Const) Allocator.Error!void {
@@ -57,16 +58,15 @@ pub fn sqr(rma: *Managed, a: Const) Allocator.Error!void {
     }
 }
 
+
 pub fn add(r: *Managed, a: Const, b: Const) Allocator.Error!void {
     var a2 = a;
     var b2 = b;
     const is_a_alias = a.limbs.ptr == r.limbs.ptr;
     const is_b_alias = b.limbs.ptr == r.limbs.ptr;
-    if (is_a_alias or is_b_alias) {
-        try r.ensureAddCapacity(a, b);
-        if (is_a_alias) a2.limbs.ptr = r.limbs.ptr;
-        if (is_b_alias) b2.limbs.ptr = r.limbs.ptr;
-    }
+    try r.ensureAddCapacity(a, b);
+    if (is_a_alias) a2.limbs.ptr = r.limbs.ptr;
+    if (is_b_alias) b2.limbs.ptr = r.limbs.ptr;
     var m = r.toMutable();
     m.add(a2, b2);
     r.setMetadata(m.positive, m.len);
@@ -77,11 +77,9 @@ pub fn sub(r: *Managed, a: Const, b: Const) Allocator.Error!void {
     var b2 = b;
     const is_a_alias = a.limbs.ptr == r.limbs.ptr;
     const is_b_alias = b.limbs.ptr == r.limbs.ptr;
-    if (is_a_alias or is_b_alias) {
-        try r.ensureAddCapacity(a, b);
-        if (is_a_alias) a2.limbs.ptr = r.limbs.ptr;
-        if (is_b_alias) b2.limbs.ptr = r.limbs.ptr;
-    }
+    try r.ensureCapacity(math.max(a.limbs.len, b.limbs.len) + 1);
+    if (is_a_alias) a2.limbs.ptr = r.limbs.ptr;
+    if (is_b_alias) b2.limbs.ptr = r.limbs.ptr;
     var m = r.toMutable();
     m.sub(a2, b2);
     r.setMetadata(m.positive, m.len);
